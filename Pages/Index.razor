@@ -1,0 +1,110 @@
+@page "/"
+@inject PessoaService service
+
+<div class="container">
+    <div class="row bg-light">
+        <table class="table table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Nome</th>
+                    <th>Telefone</th>
+                    <th>E-mail</th>
+                    <th>Excluir</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Pessoas.Any())
+                {
+                    @foreach (var pessoa in Pessoas)
+                    {
+                        <tr @onclick="(() => SetPessoaForUpdate(pessoa))">
+                            <td>@pessoa.NomePessoa</td>
+                            <td>@pessoa.Telefone</td>
+                            <td>@pessoa.Email</td>
+                            <td><button class="btn btn-danger" @onclick="(() => DeletePessoa(pessoa))">Excluir</button></td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="6"><strong>Nenhum Registro Encontrado</strong></td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="row m-5">
+        <div class="col-5 bg-light m-2 justify-content-start">
+            <div class="p-3 mb-3 bg-primary text-white text-center">Add Nova Pessoa</div>
+            <EditForm Model="@NovaPessoa">
+                <div class="form-group">
+                    <label for="nome">Nome</label>
+                    <input type="text" id="nome" class="form-control" @bind-value="@NovaPessoa.NomePessoa" />
+                </div>
+                <div class="form-group">
+                    <label for="telefone">Telefone</label>
+                    <input type="text" id="telefone" class="form-control" @bind="@NovaPessoa.Telefone" />
+                </div>
+                <div class="form-group">
+                    <label for="email">E-mail</label>
+                    <input type="text" id="email" class="form-control" @bind="@NovaPessoa.Email" />
+                </div>
+                <div class="text-center p-3 mb-3">
+                    <button class="btn btn-info" @onclick="AddNovaPessoa"> Cadastrar</button>
+                </div>
+            </EditForm>
+        </div>
+        <div class="col-5 bg-light m-2 justify-content-end">
+            <div class="p-3 mb-1 bg-primary text-white text-center">Atualizar Cadastro</div>
+            <EditForm Model="@UpdatePessoa">
+                <div class="form-group">
+                    <label for="nome">Nome</label>
+                    <input type="text" id="nome" class="form-control" @bind-value="@UpdatePessoa.NomePessoa" />
+                </div>
+                <div class="form-group">
+                    <label for="telefone">Telefone</label>
+                    <input type="text" id="telefone" class="form-control" @bind="@UpdatePessoa.Telefone" />
+                </div>
+                <div class="form-group">
+                    <label for="email">E-mail</label>
+                    <input type="text" id="email" class="form-control" @bind="@UpdatePessoa.Email" />
+                </div>
+                <div class="text-center p-3 mb-3">
+                    <button class="btn btn-info" @onclick="UpdatePessoaData"> Atualizar Pessoa</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+@code {
+    List<Pessoa> Pessoas = new List<Pessoa>();
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshPessoas();
+    }
+    private async Task RefreshPessoas()
+    {
+        Pessoas = await service.GetPessoasTaskAsync();
+    }
+    public Pessoa NovaPessoa { get; set; } = new Pessoa();
+    private async Task AddNovaPessoa()
+    {
+        await service.AddPessoa(NovaPessoa);
+        NovaPessoa = new Pessoa();
+        await RefreshPessoas();
+    }
+    Pessoa UpdatePessoa = new Pessoa();
+    private void SetPessoaForUpdate(Pessoa pessoa)
+    {
+        UpdatePessoa = pessoa;
+    }
+    private async Task UpdatePessoaData()
+    {
+        await service.UpdatePessoa(UpdatePessoa);
+        await RefreshPessoas();
+    }
+    private async Task DeletePessoa(Pessoa pessoa)
+    {
+        await service.DeletePessoa(pessoa);
+        await RefreshPessoas();
+    } 
+}
